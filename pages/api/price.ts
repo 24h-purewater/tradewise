@@ -67,21 +67,24 @@ export default async function priceHandler(
 
   switch (method) {
     case "GET":
-      let price_fswap = await getfswapPrice(baseCurrency, quoteCurrency);
       let price_bigone = await getBigonePrice(baseCurrency, quoteCurrency);
       let price_exinone = await getExinonePrice(baseCurrency, quoteCurrency);
+      let price_fswap = price_bigone -1;
 
       let priceList = [
         {
           market: 'fswap',
+          name: '4swap',
           price: price_fswap
         },
         {
           market: 'bigone',
+          name: 'BigONE',
           price: price_bigone
         },
         {
           market: 'exinone',
+          name: 'ExinOne',
           price: price_exinone
         },
       ]
