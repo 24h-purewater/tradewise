@@ -51,7 +51,7 @@ export default function Home() {
   const [quoteCurrency, setQuoteCurrency] = useState<string>("USDT");
   const [baseCurrency, setBaseCurrency] = useState<string>("BTC");
   const [quoteAmount, setQuoteAmount] = useState<number>(0);
-  const [baseAmount, setBaseAmount] = useState<number>(0);
+  const [baseAmount, setBaseAmount] = useState<number|null>();
   const [bestPrice, setBestPrice] = useState<number>(0);
 
   const queryParams = useMemo(() => {
@@ -75,7 +75,7 @@ export default function Home() {
 
   useEffect(() => {
     let baseAmount = Number((quoteAmount / bestPrice).toFixed(8));
-    setBaseAmount(baseAmount);
+    setBaseAmount(baseAmount > 0 ? baseAmount : null);
   }, [bestPrice, quoteAmount]);
 
   function handleQuoteAmountChange(value: any) {
@@ -89,15 +89,17 @@ export default function Home() {
         <Image src="/svg/logo.svg" alt="logo" width={135} height={20}></Image>
       </div>
       <Container maxWidth="lg" className="mt-6">
-        <div className="mb-[20px] flex">
+        <div className="mb-[16px] flex relative">
           {/* quote currency */}
           <TextField
-            className="w-7/12 inline-block opacity-70	"
+            className="w-[60%] opacity-70"
             id="filled-number"
             type="number"
+            inputProps={{ inputMode: 'numeric' }}
             InputLabelProps={{
               shrink: true,
             }}
+            placeholder={'0'}
             onChange={(e) => handleQuoteAmountChange(e.target.value)}
           />
           <SelectorWithIcon
@@ -107,19 +109,23 @@ export default function Home() {
               { name: "USDT", value: "USDT" },
               { name: "USDC", value: "USDC" },
             ]}
-          ></SelectorWithIcon>
+          >
+          </SelectorWithIcon>
+          <Image className="absolute -bottom-5 right-[15.5%] z-10" src='/img/swap_pair.png' width={24} height={24} alt="swap"></Image>
         </div>
 
         <div className="flex">
           {/* base currency */}
           <TextField
-            className="w-7/12 inline-block opacity-70	"
+            className="w-[60%] opacity-70	"
             id="filled-number"
             type="number"
+            inputProps={{ inputMode: 'numeric' }}
             value={baseAmount}
             InputLabelProps={{
               shrink: true,
             }}
+            placeholder={'0'}
           />
           <SelectorWithIcon
             onChange={(e) => setBaseCurrency(e.target.value)}
@@ -131,7 +137,7 @@ export default function Home() {
           ></SelectorWithIcon>
         </div>
 
-        <h1 className="mb-[20px] mt-[24px] text-3xl font-bold">市场</h1>
+        <h1 className="mb-[20px] mt-[22px] text-[24px] font-bold">市场</h1>
 
         {priceList &&
           priceList.map((e, idx) => (
@@ -182,7 +188,7 @@ function MarketPriceInfo({
           <div className="ml-4">
             <h2 className="text-base">{name}</h2>
             {index === 0 && (
-              <span className="bg-green-500 text-[10px] py-[1px] px-[8px]">
+              <span className="bg-green-500 text-[10px] py-[1px] px-[8px] rounded-lg">
                 最好价格
               </span>
             )}
@@ -223,7 +229,7 @@ function SelectorWithIcon({
 }) {
   return (
     <Select
-      className="w-4/12 ml-auto"
+      className="w-[38%] ml-auto"
       labelId="demo-simple-select-label"
       id="demo-simple-select"
       value={value}
