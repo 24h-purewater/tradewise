@@ -1,30 +1,32 @@
 import {
-  FormControl,
-  InputLabel,
   MenuItem,
   Select,
-  TextField,
+  TextField
 } from "@mui/material";
-import Skeleton from '@mui/material/Skeleton';
-import Stack from '@mui/material/Stack';
 import Container from "@mui/material/Container";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
 import Image from "next/image";
-import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
-import { Svg } from "../src/assets/svg";
 import { Img } from "../src/assets/Image";
+import { Svg } from "../src/assets/svg";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const defaultMaxPrice = 99999999
 
 const supportMarkets = [
   {
     market: "bigone",
     name: "BigONE",
   },
-  { market: "fswap", name: "4swap" },
   { market: "exinone", name: "ExinOne" },
+  { market: "mixpay", name: "MixPay" },
 ];
+
+const unstablePriceMarket = [
+  { market: "fswap", name: "4swap" },
+]
 
 export interface PriceItem {
   market: string;
@@ -45,34 +47,58 @@ export interface PriceResp {
 const nullPrices: PriceItem[] = supportMarkets.map((e) => ({
   market: e.market,
   name: e.name,
-  price: 0,
+  price: defaultMaxPrice,
+}));
+
+const nullUnstablePrices : PriceItem[] = unstablePriceMarket.map((e) => ({
+  market: e.market,
+  name: e.name,
+  price: defaultMaxPrice,
 }));
 
 export default function Home() {
   const [quoteCurrency, setQuoteCurrency] = useState<string>("USDT");
   const [baseCurrency, setBaseCurrency] = useState<string>("BTC");
   const [quoteAmount, setQuoteAmount] = useState<number>(0);
-  const [baseAmount, setBaseAmount] = useState<number|null>();
+  const [baseAmount, setBaseAmount] = useState<number | null>();
   const [bestPrice, setBestPrice] = useState<number>(0);
 
   const queryParams = useMemo(() => {
     return `?quote=${quoteCurrency}&base=${baseCurrency}`;
   }, [quoteCurrency, baseCurrency]);
 
+  const fswapQueryParams = useMemo(() => {
+    let quoteAmt = quoteAmount === 0 ? 1 : quoteAmount;
+    return `?quote=${quoteCurrency}&base=${baseCurrency}&quoteAmount=${quoteAmt}&market=fswap`;
+  }, [quoteCurrency, baseCurrency, quoteAmount]);
+
   const [priceList, setPriceList] = useState<PriceItem[]>(nullPrices);
 
-  const { data, error } = useSwr<PriceResp>(
-    `/api/price${queryParams}`,
+  const { data } = useSwr<PriceResp>(`/api/price${queryParams}`, fetcher, {
+    refreshInterval: 2000,
+  });
+
+  const { data: fswapPrice } = useSwr<PriceResp>(
+    `/api/price${fswapQueryParams}`,
     fetcher,
     { refreshInterval: 2000 }
   );
 
   useEffect(() => {
+    let stablePriceList: PriceItem[] = nullPrices;
+    let unstablePriceList: PriceItem[] = nullUnstablePrices;
     if (data) {
-      setPriceList(data.data.priceList);
-      setBestPrice(data.data.priceList[0].price);
+      stablePriceList = data.data.priceList;
     }
-  }, [data]);
+    if (fswapPrice) {
+      unstablePriceList = fswapPrice.data.priceList;
+    }
+    let priceList = stablePriceList.concat(unstablePriceList);
+    if (!priceList || priceList.length ===0) return;
+    priceList.sort((a, b) => a.price - b.price);
+    setPriceList(priceList);
+    setBestPrice(priceList[0].price);
+  }, [data, fswapPrice]);
 
   useEffect(() => {
     let baseAmount = Number((quoteAmount / bestPrice).toFixed(8));
@@ -96,11 +122,11 @@ export default function Home() {
             className="w-[60%] opacity-70"
             id="filled-number"
             type="number"
-            inputProps={{ inputMode: 'numeric' }}
+            inputProps={{ inputMode: "numeric" }}
             InputLabelProps={{
               shrink: true,
             }}
-            placeholder={'0'}
+            placeholder={"0"}
             onChange={(e) => handleQuoteAmountChange(e.target.value)}
           />
           <SelectorWithIcon
@@ -111,7 +137,13 @@ export default function Home() {
               { name: "USDC", value: "USDC" },
             ]}
           ></SelectorWithIcon>
-          <Image className="absolute -bottom-5 right-[15.5%] z-10" src='/img/swap_pair.png' width={24} height={24} alt="swap"></Image>
+          <Image
+            className="absolute -bottom-5 right-[15.5%] z-10"
+            src="/img/swap_pair.png"
+            width={24}
+            height={24}
+            alt="swap"
+          ></Image>
         </div>
 
         <div className="flex">
@@ -120,12 +152,12 @@ export default function Home() {
             className="w-[60%] opacity-70	"
             id="filled-number"
             type="number"
-            inputProps={{ inputMode: 'numeric' }}
+            inputProps={{ inputMode: "numeric" }}
             value={baseAmount}
             InputLabelProps={{
               shrink: true,
             }}
-            placeholder={'0'}
+            placeholder={"0"}
           />
           <SelectorWithIcon
             onChange={(e) => setBaseCurrency(e.target.value)}
@@ -179,10 +211,8 @@ function MarketPriceInfo({
   }, [quoteAmount, price]);
 
   return (
-    <div
-      className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item"
-    >
-      {price > 0 ? (
+    <div className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item">
+      {price < defaultMaxPrice ? (
         <>
           <Img name={market} width={40} height={40}></Img>
           <div className="ml-4">
@@ -203,10 +233,25 @@ function MarketPriceInfo({
           </div>
         </>
       ) : (
-        <Stack direction="row" className="w-full" spacing={2} alignItems="center">
+        <Stack
+          direction="row"
+          className="w-full"
+          spacing={2}
+          alignItems="center"
+        >
           {/* For variant="text", adjust the height via font-size */}
-          <Skeleton animation="wave" variant="circular" width={40} height={40} />
-          <Skeleton animation="wave" variant="rounded" className="w-10/12" height={48} />
+          <Skeleton
+            animation="wave"
+            variant="circular"
+            width={40}
+            height={40}
+          />
+          <Skeleton
+            animation="wave"
+            variant="rounded"
+            className="w-10/12"
+            height={48}
+          />
         </Stack>
       )}
     </div>

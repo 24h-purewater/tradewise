@@ -38,8 +38,6 @@ export function currencyToAssetId(currency: string): string {
   return ret;
 }
 
-
-
 function createGotClient() {
   if (!process.env.LOCAL_HTTP_PROXY) {
     return got.extend({
@@ -52,12 +50,12 @@ function createGotClient() {
     resolveBodyOnly: true,
     agent: {
       http: agent,
-      https: agent
-    }
+      https: agent,
+    },
   });
 }
 
-const gotClient = createGotClient()
+const gotClient = createGotClient();
 
 function getQueryString(q: string | string[] | undefined): string {
   if (!q) return "";
@@ -69,7 +67,7 @@ export default async function priceHandler(
   res: NextApiResponse
 ) {
   const {
-    query: { market, base, quote },
+    query: { market, base, quote, quoteAmount },
     method,
   } = req;
   let baseCurrency = getQueryString(base);
@@ -79,16 +77,30 @@ export default async function priceHandler(
 
   switch (method) {
     case "GET":
+      if (market === "fswap") {
+        let quoteAmountString = getQueryString(quoteAmount);
+        let price_fswap = await getfswapPrice(baseCurrency, quoteCurrency, quoteAmountString);
+        let priceList = [
+          {
+            market: "fswap",
+            name: "4swap",
+            price: price_fswap,
+          }]
+        res.status(200).json({
+          data: {
+            base: baseCurrency,
+            quote: quoteCurrency,
+            priceList: priceList,
+          },
+        });
+        return;
+      }
+
       let price_bigone = await getBigonePrice(baseCurrency, quoteCurrency);
       let price_exinone = await getExinonePrice(baseCurrency, quoteCurrency);
-      let price_fswap = price_bigone - 1;
+      let price_mixpay = await getMixPayPrice(baseCurrency, quoteCurrency);
 
       let priceList = [
-        {
-          market: "fswap",
-          name: "4swap",
-          price: price_fswap,
-        },
         {
           market: "bigone",
           name: "BigONE",
@@ -99,9 +111,12 @@ export default async function priceHandler(
           name: "ExinOne",
           price: price_exinone,
         },
+        {
+          market: "mixpay",
+          name: "MixPay",
+          price: price_mixpay,
+        },
       ];
-
-      priceList.sort((a, b) => a.price - b.price);
 
       res.status(200).json({
         data: {
@@ -119,18 +134,54 @@ export default async function priceHandler(
 
 export async function getfswapPrice(
   base: string,
+  quote: string,
+  quoteAmount: string
+): Promise<number> {
+  let baseAssetId = currencyToAssetId(base);
+  let quoteAssetId = currencyToAssetId(quote);
+  let fswapURL = "https://mtgswap-api.fox.one";
+  let fswapURL1 = "https://api.4swap.org";
+  const { data } = await gotClient
+    .post(`${fswapURL}/api/orders/pre`, {
+      json: {
+        pay_asset_id: quoteAssetId,
+        fill_asset_id: baseAssetId,
+        pay_amount: quoteAmount,
+        // fill_amount: "1"
+      },
+    })
+    .json<any>();
+  console.log(data);
+  let price = Number(data.pay_amount / data.fill_amount).toFixed(8);
+  return Number(price);
+}
+
+export async function getMixPayPrice(
+  base: string,
   quote: string
 ): Promise<number> {
-  return 0;
+  let baseAssetId = currencyToAssetId(base);
+  let quoteAssetId = currencyToAssetId(quote);
+  const { data } = await gotClient
+    .get(`https://api.mixpay.me/v1/payments_estimated`, {
+      searchParams: {
+        paymentAssetId: quoteAssetId,
+        settlementAssetId: baseAssetId,
+        paymentAmount: "1",
+        quoteAssetId: baseAssetId,
+      },
+    })
+    .json<any>();
+  return data.price;
 }
 
 export async function getBigonePrice(
   base: string,
   quote: string
 ): Promise<number> {
-  const { data } = await gotClient(
-    `https://big.one/api/v3/asset_pairs/${base}-${quote}/trades`
-  ).json<any>();
+  const { data } = await gotClient
+    .get(`https://big.one/api/v3/asset_pairs/${base}-${quote}/trades`)
+    .json<any>();
   if (data.length > 0) {
     return data[0].price;
   }
@@ -151,3 +202,5 @@ export async function getExinonePrice(
   }
   return 0;
 }
+
+getMixPayPrice("BTC", "USDT");
