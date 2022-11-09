@@ -2,8 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-
 body {
-    /* background-color: #373737; */
-    /* color:  white; */
+  /* background-color: rgba(60, 60, 60, 1); */
+  /* color:  white; */
+}
+
+.market-price-item {
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    ),
+    #121212;
+  border: 1px solid #2e2e2e;
+  /* Elevation/Outlined Dark */
+
+  box-shadow: 0px 0px 0px 1px rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
 }
