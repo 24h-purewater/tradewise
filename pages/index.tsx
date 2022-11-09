@@ -179,7 +179,7 @@ function MarketPriceInfo({
     >
       {price > 0 ? (
         <>
-          <Svg name={market}></Svg>
+          <Svg name={market} width={40} height={40}></Svg>
           <div className="ml-4">
             <h2 className="text-base">{name}</h2>
             {index === 0 && (
