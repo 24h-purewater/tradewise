@@ -109,8 +109,7 @@ export default function Home() {
               { name: "USDT", value: "USDT" },
               { name: "USDC", value: "USDC" },
             ]}
-          >
-          </SelectorWithIcon>
+          ></SelectorWithIcon>
           <Image className="absolute -bottom-5 right-[15.5%] z-10" src='/img/swap_pair.png' width={24} height={24} alt="swap"></Image>
         </div>
 
