@@ -173,8 +173,7 @@ function MarketPriceInfo({
   }, [quoteAmount, price]);
 
   return (
-    <Container
-      maxWidth="lg"
+    <div
       className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item"
     >
       {price > 0 ? (
@@ -204,7 +203,7 @@ function MarketPriceInfo({
           <Skeleton animation="wave" variant="rounded" className="w-10/12" height={48} />
         </Stack>
       )}
-    </Container>
+    </div>
   );
 }
 
