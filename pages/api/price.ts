@@ -38,14 +38,26 @@ export function currencyToAssetId(currency: string): string {
   return ret;
 }
 
-const gotClient = got.extend({
-  responseType: "json",
-  resolveBodyOnly: true,
-  agent: {
-    http: agent,
-    https: agent,
-  },
-});
+
+
+function createGotClient() {
+  if (!process.env.LOCAL_HTTP_PROXY) {
+    return got.extend({
+      responseType: "json",
+      resolveBodyOnly: true,
+    });
+  }
+  return got.extend({
+    responseType: "json",
+    resolveBodyOnly: true,
+    agent: {
+      http: agent,
+      https: agent
+    }
+  });
+}
+
+const gotClient = createGotClient()
 
 function getQueryString(q: string | string[] | undefined): string {
   if (!q) return "";
@@ -69,33 +81,33 @@ export default async function priceHandler(
     case "GET":
       let price_bigone = await getBigonePrice(baseCurrency, quoteCurrency);
       let price_exinone = await getExinonePrice(baseCurrency, quoteCurrency);
-      let price_fswap = price_bigone -1;
+      let price_fswap = price_bigone - 1;
 
       let priceList = [
         {
-          market: 'fswap',
-          name: '4swap',
-          price: price_fswap
+          market: "fswap",
+          name: "4swap",
+          price: price_fswap,
         },
         {
-          market: 'bigone',
-          name: 'BigONE',
-          price: price_bigone
+          market: "bigone",
+          name: "BigONE",
+          price: price_bigone,
         },
         {
-          market: 'exinone',
-          name: 'ExinOne',
-          price: price_exinone
+          market: "exinone",
+          name: "ExinOne",
+          price: price_exinone,
         },
-      ]
+      ];
 
-      priceList.sort((a,b)=> a.price - b.price)
+      priceList.sort((a, b) => a.price - b.price);
 
       res.status(200).json({
         data: {
           base: baseCurrency,
           quote: quoteCurrency,
-          priceList: priceList
+          priceList: priceList,
         },
       });
       break;
