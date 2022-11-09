@@ -13,6 +13,7 @@ import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
 import { Svg } from "../src/assets/svg";
+import { Img } from "../src/assets/Image";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -183,7 +184,7 @@ function MarketPriceInfo({
     >
       {price > 0 ? (
         <>
-          <Svg name={market} width={40} height={40}></Svg>
+          <Img name={market} width={40} height={40}></Img>
           <div className="ml-4">
             <h2 className="text-base">{name}</h2>
             {index === 0 && (
