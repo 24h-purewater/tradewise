@@ -15,6 +15,7 @@
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
     "@next/font": "latest",
+    "@svgr/webpack": "^6.5.1",
     "https-proxy-agent": "^5.0.1",
     "next": "latest",
     "react": "latest",

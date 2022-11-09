@@ -151,7 +151,6 @@ export async function getfswapPrice(
       },
     })
     .json<any>();
-  console.log(data);
   let price = Number(data.pay_amount / data.fill_amount).toFixed(8);
   return Number(price);
 }

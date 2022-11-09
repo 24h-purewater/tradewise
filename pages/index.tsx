@@ -1,19 +1,14 @@
-import {
-  MenuItem,
-  Select,
-  TextField
-} from "@mui/material";
+import { MenuItem, Select, TextField } from "@mui/material";
 import Container from "@mui/material/Container";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
-import { Img } from "../src/assets/Image";
 import { Svg } from "../src/assets/svg";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
-const defaultMaxPrice = 99999999
+const defaultMaxPrice = 99999999;
 
 const supportMarkets = [
   {
@@ -24,9 +19,7 @@ const supportMarkets = [
   { market: "mixpay", name: "MixPay" },
 ];
 
-const unstablePriceMarket = [
-  { market: "fswap", name: "4swap" },
-]
+const unstablePriceMarket = [{ market: "fswap", name: "4swap" }];
 
 export interface PriceItem {
   market: string;
@@ -50,7 +43,7 @@ const nullPrices: PriceItem[] = supportMarkets.map((e) => ({
   price: defaultMaxPrice,
 }));
 
-const nullUnstablePrices : PriceItem[] = unstablePriceMarket.map((e) => ({
+const nullUnstablePrices: PriceItem[] = unstablePriceMarket.map((e) => ({
   market: e.market,
   name: e.name,
   price: defaultMaxPrice,
@@ -60,7 +53,7 @@ export default function Home() {
   const [quoteCurrency, setQuoteCurrency] = useState<string>("USDT");
   const [baseCurrency, setBaseCurrency] = useState<string>("BTC");
   const [quoteAmount, setQuoteAmount] = useState<number>(0);
-  const [baseAmount, setBaseAmount] = useState<number | null>();
+  const [baseAmount, setBaseAmount] = useState<number | undefined>();
   const [bestPrice, setBestPrice] = useState<number>(0);
 
   const queryParams = useMemo(() => {
@@ -94,7 +87,7 @@ export default function Home() {
       unstablePriceList = fswapPrice.data.priceList;
     }
     let priceList = stablePriceList.concat(unstablePriceList);
-    if (!priceList || priceList.length ===0) return;
+    if (!priceList || priceList.length === 0) return;
     priceList.sort((a, b) => a.price - b.price);
     setPriceList(priceList);
     setBestPrice(priceList[0].price);
@@ -102,18 +95,17 @@ export default function Home() {
 
   useEffect(() => {
     let baseAmount = Number((quoteAmount / bestPrice).toFixed(8));
-    setBaseAmount(baseAmount > 0 ? baseAmount : null);
+    setBaseAmount(baseAmount > 0 ? baseAmount : 0);
   }, [bestPrice, quoteAmount]);
 
   function handleQuoteAmountChange(value: any) {
     setQuoteAmount(Number(value));
-    setBaseAmount(baseAmount);
   }
 
   return (
     <>
-      <div className="flex h-[64px] items-center px-[24px]">
-        <Image src="/svg/logo.svg" alt="logo" width={135} height={20}></Image>
+      <div className="flex h-[64px] items-center px-[24px] pt-4">
+        <Svg name="logo" height={35} width={135}></Svg>
       </div>
       <Container maxWidth="lg" className="mt-6">
         <div className="mb-[16px] flex relative">
@@ -214,7 +206,9 @@ function MarketPriceInfo({
     <div className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item">
       {price < defaultMaxPrice ? (
         <>
-          <Img name={market} width={40} height={40}></Img>
+          <Svg name={market} height={40} width={40}></Svg>
+
+          {/* <Img name={market} width={40} height={40}></Img> */}
           <div className="ml-4">
             <h2 className="text-base">{name}</h2>
             {index === 0 && (
@@ -228,7 +222,7 @@ function MarketPriceInfo({
               {baseAmount} {base}
             </h3>
             <span className="text-[12px] opacity-70	">
-              {price} {base}/{quote}
+              {price} {quote}/{base}
             </span>
           </div>
         </>
