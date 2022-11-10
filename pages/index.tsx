@@ -2,7 +2,6 @@ import { MenuItem, Select, TextField } from "@mui/material";
 import Container from "@mui/material/Container";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
 import { Svg } from "../src/assets/svg";
@@ -16,7 +15,7 @@ const supportMarkets = [
     name: "BigONE",
   },
   { market: "exinone", name: "ExinOne" },
-  { market: "mixpay", name: "MixPay" },
+  { market: "tradewise", name: "TradeWise" },
 ];
 
 const unstablePriceMarket = [{ market: "fswap", name: "4swap" }];

@@ -4,6 +4,7 @@ import ETH from "./ETH.svg";
 import Exinone from "./exinone.svg";
 import Fswap from "./fswap.svg";
 import Mixpay from "./mixpay.svg";
+import Tradewise from "./tradewise.svg";
 import Logo from "./logo.svg";
 import USDC from "./USDC.svg";
 import USDT from "./USDT.svg";
@@ -38,6 +39,8 @@ export function Svg({
         return <BTC />;
       case "mixpay":
         return <Mixpay />;
+      case "tradewise":
+        return <Tradewise />;
       case "arrow":
         return <Arrow />;
       default:
