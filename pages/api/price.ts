@@ -161,24 +161,51 @@ export async function getfswapPrice(
   return Number(price);
 }
 
+/**
+ *  settle 0.00001BTC， USDT -> BTC
+ *  https://api.mixpay.me/v1/payments_estimated?paymentAssetId=4d8c508b-91c5-375b-92b0-ee702ed2dac5&settlementAssetId=c6d0c728-2624-429b-8e0d-d9d19b6592fa&quoteAmount=0.00001000&quoteAssetId=c6d0c728-2624-429b-8e0d-d9d19b6592fa
+ *  settle 1USDT , BTC -> USDT
+ *  https://api.mixpay.me/v1/payments_estimated?paymentAssetId=c6d0c728-2624-429b-8e0d-d9d19b6592fa&settlementAssetId=4d8c508b-91c5-375b-92b0-ee702ed2dac5&quoteAmount=1.00000000&quoteAssetId=4d8c508b-91c5-375b-92b0-ee702ed2dac5
+ *
+ */
 export async function getMixPayPrice(
   base: string,
   quote: string
 ): Promise<number> {
   let baseAssetId = currencyToAssetId(base);
   let quoteAssetId = currencyToAssetId(quote);
+  let quoteAmount = "0.001";
+  let paymentAmount = "0.001"
+  if (
+    ["USDT", "USDC"].indexOf(base) > -1 &&
+    ["USDT", "USDC"].indexOf(quote) > -1
+  ) {
+    quoteAmount = "1";
+  }
+  if (
+    ["BTC", "ETH"].indexOf(quote) > -1 &&
+    ["BTC", "ETH"].indexOf(base) === -1
+  ) {
+    quoteAmount = "100";
+  }
+  if (["USDT", "USDC"].indexOf(quote) > -1) {
+    paymentAmount = "100"
+  }
+
   try {
     const { data } = await gotClient
       .get(`https://api.mixpay.me/v1/payments_estimated`, {
         searchParams: {
           paymentAssetId: quoteAssetId,
           settlementAssetId: baseAssetId,
-          quoteAmount: "1",
+          // quoteAmount: quoteAmount,
+          paymentAmount: paymentAmount,
           quoteAssetId: baseAssetId,
         },
       })
       .json<any>();
-    return data.price;
+    let price = data.price;
+    return price;
   } catch (e) {
     console.log("get mixpay price error", e);
     return defaultNaNPrice;
@@ -234,10 +261,13 @@ export function swapBaseQuote(
   quoteCurrency: string
 ): [string, string, boolean] {
   let isSwap = false;
-  if (
+
+  let swapCondition1 =
     (baseCurrency === "USDT" || baseCurrency === "USDC") &&
-    (quoteCurrency === "BTC" || quoteCurrency === "ETH")
-  ) {
+    (quoteCurrency === "BTC" || quoteCurrency === "ETH");
+  let swapCondition2 = baseCurrency === "BTC" && quoteCurrency === "ETH";
+
+  if (swapCondition1 || swapCondition2) {
     isSwap = true;
     [baseCurrency, quoteCurrency] = [quoteCurrency, baseCurrency];
   }
