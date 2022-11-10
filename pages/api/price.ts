@@ -167,17 +167,22 @@ export async function getMixPayPrice(
 ): Promise<number> {
   let baseAssetId = currencyToAssetId(base);
   let quoteAssetId = currencyToAssetId(quote);
-  const { data } = await gotClient
-    .get(`https://api.mixpay.me/v1/payments_estimated`, {
-      searchParams: {
-        paymentAssetId: quoteAssetId,
-        settlementAssetId: baseAssetId,
-        paymentAmount: "1",
-        quoteAssetId: baseAssetId,
-      },
-    })
-    .json<any>();
-  return data.price;
+  try {
+    const { data } = await gotClient
+      .get(`https://api.mixpay.me/v1/payments_estimated`, {
+        searchParams: {
+          paymentAssetId: quoteAssetId,
+          settlementAssetId: baseAssetId,
+          quoteAmount: "1",
+          quoteAssetId: baseAssetId,
+        },
+      })
+      .json<any>();
+    return data.price;
+  } catch (e) {
+    console.log("get mixpay price error", e);
+    return defaultNaNPrice;
+  }
 }
 
 export async function getBigonePrice(
@@ -196,7 +201,7 @@ export async function getBigonePrice(
     }
     return defaultNaNPrice;
   } catch (e) {
-    console.log(e);
+    console.log("get bigone price error", e);
     return defaultNaNPrice;
   }
 }
@@ -207,16 +212,21 @@ export async function getExinonePrice(
 ): Promise<number> {
   let isSwap;
   [base, quote, isSwap] = swapBaseQuote(base, quote);
-  const { data } = await gotClient(
-    "https://app.eiduwejdk.com/mixin-social/pair"
-  ).json<any>();
-  let pairName = `${base}/${quote}`;
-  let pairItem = data.filter((e: any) => e.pair === pairName);
-  if (pairItem && pairItem.length > 0) {
-    let price = pairItem[0].buyPrice;
-    return isSwap ? Number((1 / price).toFixed(8)) : price;
+  try {
+    const { data } = await gotClient(
+      "https://app.eiduwejdk.com/mixin-social/pair"
+    ).json<any>();
+    let pairName = `${base}/${quote}`;
+    let pairItem = data.filter((e: any) => e.pair === pairName);
+    if (pairItem && pairItem.length > 0) {
+      let price = pairItem[0].buyPrice;
+      return isSwap ? Number((1 / price).toFixed(8)) : price;
+    }
+    return defaultNaNPrice;
+  } catch (e) {
+    console.log("get exinone price error", e);
+    return defaultNaNPrice;
   }
-  return defaultNaNPrice;
 }
 
 export function swapBaseQuote(
