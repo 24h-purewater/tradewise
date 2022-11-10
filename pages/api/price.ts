@@ -118,8 +118,8 @@ export default async function priceHandler(
           price: price_exinone,
         },
         {
-          market: "tradewise",
-          name: "TradeWise",
+          market: "mixpay",
+          name: "MixPay",
           price: price_mixpay,
         },
       ];

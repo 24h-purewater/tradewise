@@ -15,7 +15,7 @@ const supportMarkets = [
     name: "BigONE",
   },
   { market: "exinone", name: "ExinOne" },
-  { market: "tradewise", name: "TradeWise" },
+  { market: "mixpay", name: "MixPay" },
 ];
 
 const unstablePriceMarket = [{ market: "fswap", name: "4swap" }];
