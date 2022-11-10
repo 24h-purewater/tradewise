@@ -6,9 +6,10 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
 import { Svg } from "../src/assets/svg";
+import { defaultMaxPrice, defaultNaNPrice } from "../src/types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
-const defaultMaxPrice = 99999999;
+
 
 const supportMarkets = [
   {
@@ -98,6 +99,28 @@ export default function Home() {
     setBaseAmount(baseAmount > 0 ? baseAmount : 0);
   }, [bestPrice, quoteAmount]);
 
+  function handleCurrencyChange(value: any, type: string) {
+    let quote = quoteCurrency;
+    let base = baseCurrency;
+    if (type === "quote") {
+      if (value === baseCurrency) {
+        setBaseCurrency(quote);
+        setQuoteCurrency(base);
+      } else {
+        setQuoteCurrency(value);
+      }
+    } else {
+      if (type === "base") {
+        if (value === quoteCurrency) {
+          setBaseCurrency(quote);
+          setQuoteCurrency(base);
+        } else {
+          setBaseCurrency(value);
+        }
+      }
+    }
+  }
+
   function handleQuoteAmountChange(value: any) {
     setQuoteAmount(Number(value));
   }
@@ -122,11 +145,13 @@ export default function Home() {
             onChange={(e) => handleQuoteAmountChange(e.target.value)}
           />
           <SelectorWithIcon
-            onChange={(e) => setQuoteCurrency(e.target.value)}
+            onChange={(e) => handleCurrencyChange(e.target.value, "quote")}
             value={quoteCurrency}
             menuItemList={[
               { name: "USDT", value: "USDT" },
               { name: "USDC", value: "USDC" },
+              { name: "BTC", value: "BTC" },
+              { name: "ETH", value: "ETH" },
             ]}
           ></SelectorWithIcon>
           <Image
@@ -152,11 +177,13 @@ export default function Home() {
             placeholder={"0"}
           />
           <SelectorWithIcon
-            onChange={(e) => setBaseCurrency(e.target.value)}
+            onChange={(e) => handleCurrencyChange(e.target.value, "base")}
             value={baseCurrency}
             menuItemList={[
               { name: "BTC", value: "BTC" },
               { name: "ETH", value: "ETH" },
+              { name: "USDT", value: "USDT" },
+              { name: "USDC", value: "USDC" },
             ]}
           ></SelectorWithIcon>
         </div>
@@ -199,8 +226,15 @@ function MarketPriceInfo({
   quoteAmount: number;
 }) {
   const baseAmount = useMemo(() => {
+    if(price === defaultNaNPrice) {
+      return 0
+    }
     return Number((Number(quoteAmount) / price).toFixed(8));
   }, [quoteAmount, price]);
+
+  const priceDisplay = useMemo(() => {
+    return price === defaultNaNPrice ? '暂无价格' : price
+  }, [ price]);
 
   return (
     <div className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item">
@@ -222,7 +256,7 @@ function MarketPriceInfo({
               {baseAmount} {base}
             </h3>
             <span className="text-[12px] opacity-70	">
-              {price} {quote}/{base}
+              {priceDisplay} {quote}/{base}
             </span>
           </div>
         </>

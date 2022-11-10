@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import HttpsProxyAgent from "https-proxy-agent";
 import got, { Got } from "got";
+import { defaultNaNPrice } from "../../src/types";
 
 var agent = HttpsProxyAgent(process.env.LOCAL_HTTP_PROXY ?? "");
 
@@ -79,13 +80,18 @@ export default async function priceHandler(
     case "GET":
       if (market === "fswap") {
         let quoteAmountString = getQueryString(quoteAmount);
-        let price_fswap = await getfswapPrice(baseCurrency, quoteCurrency, quoteAmountString);
+        let price_fswap = await getfswapPrice(
+          baseCurrency,
+          quoteCurrency,
+          quoteAmountString
+        );
         let priceList = [
           {
             market: "fswap",
             name: "4swap",
             price: price_fswap,
-          }]
+          },
+        ];
         res.status(200).json({
           data: {
             base: baseCurrency,
@@ -178,28 +184,52 @@ export async function getBigonePrice(
   base: string,
   quote: string
 ): Promise<number> {
-  const { data } = await gotClient
-    .get(`https://big.one/api/v3/asset_pairs/${base}-${quote}/trades`)
-    .json<any>();
-  if (data.length > 0) {
-    return data[0].price;
+  let isSwap;
+  [base, quote, isSwap] = swapBaseQuote(base, quote);
+  try {
+    const { data } = await gotClient
+      .get(`https://big.one/api/v3/asset_pairs/${base}-${quote}/trades`)
+      .json<any>();
+    if (data.length > 0) {
+      let price = data[0].price;
+      return isSwap ? Number((1 / price).toFixed(8)) : price;
+    }
+    return defaultNaNPrice;
+  } catch (e) {
+    console.log(e);
+    return defaultNaNPrice;
   }
-  return 0;
 }
 
 export async function getExinonePrice(
   base: string,
   quote: string
 ): Promise<number> {
+  let isSwap;
+  [base, quote, isSwap] = swapBaseQuote(base, quote);
   const { data } = await gotClient(
     "https://app.eiduwejdk.com/mixin-social/pair"
   ).json<any>();
   let pairName = `${base}/${quote}`;
   let pairItem = data.filter((e: any) => e.pair === pairName);
   if (pairItem && pairItem.length > 0) {
-    return pairItem[0].buyPrice;
+    let price = pairItem[0].buyPrice;
+    return isSwap ? Number((1 / price).toFixed(8)) : price;
   }
-  return 0;
+  return defaultNaNPrice;
 }
 
-getMixPayPrice("BTC", "USDT");
+export function swapBaseQuote(
+  baseCurrency: string,
+  quoteCurrency: string
+): [string, string, boolean] {
+  let isSwap = false;
+  if (
+    (baseCurrency === "USDT" || baseCurrency === "USDC") &&
+    (quoteCurrency === "BTC" || quoteCurrency === "ETH")
+  ) {
+    isSwap = true;
+    [baseCurrency, quoteCurrency] = [quoteCurrency, baseCurrency];
+  }
+  return [baseCurrency, quoteCurrency, isSwap];
+}
