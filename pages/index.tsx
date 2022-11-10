@@ -10,7 +10,6 @@ import { defaultMaxPrice, defaultNaNPrice } from "../src/types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-
 const supportMarkets = [
   {
     market: "bigone",
@@ -131,7 +130,7 @@ export default function Home() {
         <Svg name="logo" height={35} width={135}></Svg>
       </div>
       <Container maxWidth="lg" className="mt-6">
-        <div className="mb-[16px] flex relative">
+        <div className="mb-[16px] flex">
           {/* quote currency */}
           <TextField
             className="w-[60%] opacity-70"
@@ -144,23 +143,21 @@ export default function Home() {
             placeholder={"0"}
             onChange={(e) => handleQuoteAmountChange(e.target.value)}
           />
-          <SelectorWithIcon
-            onChange={(e) => handleCurrencyChange(e.target.value, "quote")}
-            value={quoteCurrency}
-            menuItemList={[
-              { name: "USDT", value: "USDT" },
-              { name: "USDC", value: "USDC" },
-              { name: "BTC", value: "BTC" },
-              { name: "ETH", value: "ETH" },
-            ]}
-          ></SelectorWithIcon>
-          <Image
-            className="absolute -bottom-5 right-[15.5%] z-10"
-            src="/img/swap_pair.png"
-            width={24}
-            height={24}
-            alt="swap"
-          ></Image>
+          <div className="w-[38%] ml-auto relative flex justify-center">
+            <SelectorWithIcon
+              onChange={(e) => handleCurrencyChange(e.target.value, "quote")}
+              value={quoteCurrency}
+              menuItemList={[
+                { name: "USDT", value: "USDT" },
+                { name: "USDC", value: "USDC" },
+                { name: "BTC", value: "BTC" },
+                { name: "ETH", value: "ETH" },
+              ]}
+            ></SelectorWithIcon>
+            <div className="absolute -bottom-5  z-10">
+              <Svg name="arrow" width={24} height={24}></Svg>
+            </div>
+          </div>
         </div>
 
         <div className="flex">
@@ -176,16 +173,18 @@ export default function Home() {
             }}
             placeholder={"0"}
           />
-          <SelectorWithIcon
-            onChange={(e) => handleCurrencyChange(e.target.value, "base")}
-            value={baseCurrency}
-            menuItemList={[
-              { name: "BTC", value: "BTC" },
-              { name: "ETH", value: "ETH" },
-              { name: "USDT", value: "USDT" },
-              { name: "USDC", value: "USDC" },
-            ]}
-          ></SelectorWithIcon>
+          <div className="w-[38%] ml-auto">
+            <SelectorWithIcon
+              onChange={(e) => handleCurrencyChange(e.target.value, "base")}
+              value={baseCurrency}
+              menuItemList={[
+                { name: "BTC", value: "BTC" },
+                { name: "ETH", value: "ETH" },
+                { name: "USDT", value: "USDT" },
+                { name: "USDC", value: "USDC" },
+              ]}
+            ></SelectorWithIcon>
+          </div>
         </div>
 
         <h1 className="mb-[20px] mt-[22px] text-[24px] font-bold">市场</h1>
@@ -226,15 +225,15 @@ function MarketPriceInfo({
   quoteAmount: number;
 }) {
   const baseAmount = useMemo(() => {
-    if(price === defaultNaNPrice) {
-      return 0
+    if (price === defaultNaNPrice) {
+      return 0;
     }
     return Number((Number(quoteAmount) / price).toFixed(8));
   }, [quoteAmount, price]);
 
   const priceDisplay = useMemo(() => {
-    return price === defaultNaNPrice ? '暂无价格' : price
-  }, [ price]);
+    return price === defaultNaNPrice ? "暂无价格" : price;
+  }, [price]);
 
   return (
     <div className="h-[72px] p-[16px] border-2 mb-[14px] border-grey-600 flex w-full items-center market-price-item">
@@ -302,7 +301,7 @@ function SelectorWithIcon({
 }) {
   return (
     <Select
-      className="w-[38%] ml-auto"
+    className="w-full"
       labelId="demo-simple-select-label"
       id="demo-simple-select"
       value={value}

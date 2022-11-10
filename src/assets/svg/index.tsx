@@ -7,6 +7,7 @@ import Mixpay from "./mixpay.svg";
 import Logo from "./logo.svg";
 import USDC from "./USDC.svg";
 import USDT from "./USDT.svg";
+import Arrow from "./arrow.svg";
 
 export function Svg({
   name,
@@ -37,6 +38,8 @@ export function Svg({
         return <BTC />;
       case "mixpay":
         return <Mixpay />;
+      case "arrow":
+        return <Arrow />;
       default:
         return <Logo />;
     }
