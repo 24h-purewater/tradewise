@@ -9,6 +9,7 @@ import Logo from "./logo.svg";
 import USDC from "./USDC.svg";
 import USDT from "./USDT.svg";
 import Arrow from "./arrow.svg";
+import Uniswap from "./uniswap.svg";
 
 export function Svg({
   name,
@@ -43,6 +44,8 @@ export function Svg({
         return <Tradewise />;
       case "arrow":
         return <Arrow />;
+      case "uniswap":
+        return <Uniswap />;
       default:
         return <Logo />;
     }

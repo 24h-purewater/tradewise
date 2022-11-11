@@ -16,10 +16,13 @@
     "@mui/material": "latest",
     "@next/font": "latest",
     "@svgr/webpack": "^6.5.1",
+    "axios": "^1.1.3",
+    "bignumber.js": "^9.1.0",
     "https-proxy-agent": "^5.0.1",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-use": "^17.4.0",
     "swr": "^1.3.0"
   },
   "devDependencies": {
