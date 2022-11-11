@@ -128,7 +128,7 @@ export async function getfswapPrice(
   let quoteAssetId = currencyToAssetId(quote);
   let fswapURL = "https://mtgswap-api.fox.one";
   let fswapURL1 = "https://api.4swap.org";
-  const { data } = await gotClient
+  try{const { data } = await gotClient
     .post(`${fswapURL}/api/orders/pre`, {
       json: {
         pay_asset_id: quoteAssetId,
@@ -139,7 +139,10 @@ export async function getfswapPrice(
     })
     .json<any>();
   let price = Number(data.pay_amount / data.fill_amount).toFixed(8);
-  return Number(price);
+  return Number(price);}catch(e){
+    console.log('get 4swap price error', e);
+    return defaultNaNPrice
+  }
 }
 
 /**
