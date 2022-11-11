@@ -1,10 +1,12 @@
 import { TextField } from "@mui/material";
 import Container from "@mui/material/Container";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
 import { MarketPriceInfo } from "../components/MarketPriceInfo";
 import { SelectorWithIcon } from "../components/SelectorWithIcon";
+import { getUniswapQuote } from "../src/api";
 import { Svg } from "../src/assets/svg";
+import { usePriceFetch } from "../src/hooks/usePriceFetch";
 import { nullPrices, nullUnstablePrices, PriceItem, PriceResp, setPriceInItemList } from "../src/types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -60,9 +62,8 @@ export default function Home() {
     if (fswapPrice) {
       setPriceInItemList(unstablePriceList, 'fswap', fswapPrice.data.priceList[0].price)
     }
-    console.log('uniswap price', uniswapPrice);
-    
     if (uniswapPrice) {
+      // setPriceInItemList(unstablePriceList, 'uniswap', uniswapPrice)
       setPriceInItemList(unstablePriceList, 'uniswap', uniswapPrice.data.priceList[0].price)
     }
     let priceList = stablePriceList.concat(unstablePriceList);

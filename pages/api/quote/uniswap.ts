@@ -41,10 +41,25 @@ export async function getUniswapQuote(quote: string, base: string, inAmount: num
 
     let tokenInAmount = newBnWithDecimals(inAmount, tokenIn.decimals)
     try {
+        let res = await gotClient.get('https://api.uniswap.org/v1/quote', {
+            searchParams: {
+                protocols: 'v2,v3,mixed',
+                tokenInAddress: tokenIn.id,
+                tokenInChainId: 1,
+                tokenOutAddress: tokenOut.id,
+                tokenOutChainId: 1,
+                amount: tokenInAmount.toNumber(),
+                type: 'exactIn'
+            },
+            headers: {
+                origin: 'https://api.uniswap.org',
+                referer: 'https://api.uniswap.org'
+            }
+        }).json<any>()
 
-        // let res = await gotClient.get('https://api.uniswap.org/v1/quote', {
-        //     searchParams: {
-        //         protocols: 'v2%2Cv3%2Cmixed',
+        // let res = await $axios.get('https://api.uniswap.org/v1/quote', {
+        //     params: {
+        //         protocols: 'v2,v3,mixed',
         //         tokenInAddress: tokenIn.id,
         //         tokenInChainId: 1,
         //         tokenOutAddress: tokenOut.id,
@@ -52,20 +67,8 @@ export async function getUniswapQuote(quote: string, base: string, inAmount: num
         //         amount: tokenInAmount.toString(),
         //         type: 'exactIn'
         //     }
-        // }).json<any>()
-
-        let res = await $axios.get('https://api.uniswap.org/v1/quote', {
-            params: {
-                protocols: 'v2,v3,mixed',
-                tokenInAddress: tokenIn.id,
-                tokenInChainId: 1,
-                tokenOutAddress: tokenOut.id,
-                tokenOutChainId: 1,
-                amount: tokenInAmount.toString(),
-                type: 'exactIn'
-            }
-        })
-        return Number((inAmount / res.data.quoteDecimals).toFixed(8))
+        // })
+        return Number((inAmount / res.quoteDecimals).toFixed(8))
     } catch (e) {
         console.log('get uniswap price error', e);
         return defaultNaNPrice
@@ -91,8 +94,8 @@ export default async function uniswapPriceHandler(
         case "GET":
             let quoteAmountString = getQueryString(quoteAmount);
             let price_uniswap = await getUniswapQuote(
-                baseCurrency,
                 quoteCurrency,
+                baseCurrency,
                 Number(quoteAmountString)
             );
             let priceList = [
