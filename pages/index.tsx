@@ -1,12 +1,10 @@
 import { TextField } from "@mui/material";
 import Container from "@mui/material/Container";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSwr from "swr";
 import { MarketPriceInfo } from "../components/MarketPriceInfo";
 import { SelectorWithIcon } from "../components/SelectorWithIcon";
-import { getUniswapQuote } from "../src/api/uniswap";
 import { Svg } from "../src/assets/svg";
-import { usePriceFetch } from "../src/hooks/usePriceFetch";
 import { nullPrices, nullUnstablePrices, PriceItem, PriceResp, setPriceInItemList } from "../src/types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -40,11 +38,18 @@ export default function Home() {
     { refreshInterval: 2000 }
   );
 
-  const fetchUniswapPrice = useCallback(() => {
-    return getUniswapQuote(quoteCurrency, baseCurrency, quoteAmount);
-  }, [quoteCurrency, baseCurrency, quoteAmount]);
+  const { data: uniswapPrice } = useSwr<PriceResp>(
+    `/api/quote/uniswap${fswapQueryParams}`,
+    fetcher,
+    { refreshInterval: 2000 }
+  );
 
-  const { price: uniswapPrice } = usePriceFetch(fetchUniswapPrice);
+
+  // const fetchUniswapPrice = useCallback(() => {
+  //   return getUniswapQuote(quoteCurrency, baseCurrency, quoteAmount);
+  // }, [quoteCurrency, baseCurrency, quoteAmount]);
+
+  // const { price: uniswapPrice } = usePriceFetch(fetchUniswapPrice);
 
   useEffect(() => {
     let stablePriceList: PriceItem[] = nullPrices;
@@ -58,7 +63,7 @@ export default function Home() {
     console.log('uniswap price', uniswapPrice);
     
     if (uniswapPrice) {
-      setPriceInItemList(unstablePriceList, 'uniswap', uniswapPrice)
+      setPriceInItemList(unstablePriceList, 'uniswap', uniswapPrice.data.priceList[0].price)
     }
     let priceList = stablePriceList.concat(unstablePriceList);
     if (!priceList || priceList.length === 0) return;

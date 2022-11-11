@@ -1,9 +1,8 @@
+
 import type { NextApiRequest, NextApiResponse } from "next";
-import HttpsProxyAgent from "https-proxy-agent";
-import got, { Got } from "got";
+import { gotClient } from ".";
 import { defaultNaNPrice } from "../../src/types";
 
-var agent = HttpsProxyAgent(process.env.LOCAL_HTTP_PROXY ?? "");
 
 const USDT = "USDT";
 const PUSD = "pUSD";
@@ -39,26 +38,8 @@ export function currencyToAssetId(currency: string): string {
   return ret;
 }
 
-function createGotClient() {
-  if (!process.env.LOCAL_HTTP_PROXY) {
-    return got.extend({
-      responseType: "json",
-      resolveBodyOnly: true,
-    });
-  }
-  return got.extend({
-    responseType: "json",
-    resolveBodyOnly: true,
-    agent: {
-      http: agent,
-      https: agent,
-    },
-  });
-}
 
-const gotClient = createGotClient();
-
-function getQueryString(q: string | string[] | undefined): string {
+export function getQueryString(q: string | string[] | undefined): string {
   if (!q) return "";
   return Array.isArray(q) ? q[0] : String(q);
 }
